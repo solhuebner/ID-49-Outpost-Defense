@@ -14,7 +14,6 @@
 //determine the game
 #define GAME_ID 00
 
-#include "Arglib.h"
 #include "globals.h"
 #include "menu.h"
 #include "game.h"
@@ -41,7 +40,8 @@ const FunctionPointer PROGMEM mainGameLoop[] = {
 
 
 void setup() {
-  arduboy.start();
+  //ATM.play(titleSong);
+  arduboy.begin();
   arduboy.setFrameRate(60);                                 // set the frame rate of the game at 60 fps
   arduboy.initRandomSeed();                                 // This sets the random to more random, remove this if no random is needed !
 }
@@ -49,8 +49,8 @@ void setup() {
 
 void loop() {
   if (!(arduboy.nextFrame())) return;
-  arduboy.poll();
-  arduboy.clearDisplay();
+  arduboy.pollButtons();
+  arduboy.clear();
   ((FunctionPointer) pgm_read_word (&mainGameLoop[gameState]))();
   arduboy.display();
 }

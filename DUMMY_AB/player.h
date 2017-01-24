@@ -1,7 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <Arduino.h>
 #include "globals.h"
 
 struct Players
@@ -21,7 +20,8 @@ void drawPlayer()
 {
   if (arduboy.everyXFrames(6) && player.walking) player.frame++;
   if (player.frame > 3 ) player.frame = 0;
-  sprites.drawPlusMask(player.x, player.y, player_plus_mask, player.frame + 4 * player.direction);
+  sprites.drawErase(player.x, player.y, player_4D_mask, player.frame + 4 * player.direction);
+  sprites.drawSelfMasked(player.x, player.y, player_4D, player.frame + 4 * player.direction);
 }
 
 #endif

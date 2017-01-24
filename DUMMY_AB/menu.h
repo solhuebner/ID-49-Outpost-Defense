@@ -1,11 +1,11 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <Arduino.h>
 #include "globals.h"
 
 void stateMenuIntro()
 {
+  gameState =STATE_GAME_PLAYING;
   globalCounter++;
   sprites.drawSelfMasked(34, 4, T_arg, 0);
   if (globalCounter > 180) gameState = STATE_MENU_MAIN;
