@@ -1,18 +1,18 @@
 /*
-  GAME NAME: http://www.team-arg.org/dummy-manual.html
+  Outpost Defense: http://www.team-arg.org/opde-manual.html
 
-  Arduboy version 0.1:  http://www.team-arg.org/dummy-downloads.html
+  Arduboy version 0.1:  http://www.team-arg.org/opde-downloads.html
 
   MADE by TEAM a.r.g. : http://www.team-arg.org/more-about.html
 
-  2017 - JO3RI
+  2017 - Trodoss
 
   License: MIT : https://opensource.org/licenses/MIT
 
 */
 
 //determine the game
-#define GAME_ID 00
+#define GAME_ID 49
 
 #include "globals.h"
 #include "menu.h"
