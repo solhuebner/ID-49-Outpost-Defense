@@ -1,9 +1,10 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <Arduino.h>
 #include "globals.h"
 #include "inputs.h"
+#include "player.h"
+#include "enemies.h"
 #include "elements.h"
 #include "levels.h"
 
@@ -23,7 +24,6 @@ void stateGameNextLevel()
 
 void stateGamePlaying()
 {
-  level_draw();
   checkInputs();
   checkCollisions();
 };

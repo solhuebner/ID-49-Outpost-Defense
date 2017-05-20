@@ -18,7 +18,9 @@
 #include "menu.h"
 #include "game.h"
 #include "inputs.h"
+#include "player.h"
 #include "elements.h"
+#include "enemies.h"
 #include "levels.h"
 
 typedef void (*FunctionPointer) ();
@@ -40,7 +42,7 @@ const FunctionPointer PROGMEM mainGameLoop[] = {
 void setup() {
   //ATM.play(titleSong);
   arduboy.begin();
-  arduboy.setFrameRate(30);                                 // set the frame rate of the game at 60 fps
+  arduboy.setFrameRate(60);                                 // set the frame rate of the game at 60 fps
   arduboy.initRandomSeed();                                 // This sets the random to more random, remove this if no random is needed !
 }
 

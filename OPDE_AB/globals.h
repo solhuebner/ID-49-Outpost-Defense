@@ -4,8 +4,8 @@
 #include <Arduino.h>
 #include <Arduboy2.h>
 #include <ATMlib.h>
-#include <Sprites.h>
 #include "bitmaps.h"
+#include "songs.h"
 
 //define menu states (on main menu)
 #define STATE_MENU_INTRO             0
