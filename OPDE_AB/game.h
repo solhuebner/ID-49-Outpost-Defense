@@ -3,8 +3,6 @@
 
 #include "globals.h"
 #include "inputs.h"
-#include "player.h"
-#include "enemies.h"
 #include "elements.h"
 #include "levels.h"
 
