@@ -83,8 +83,8 @@ LevelElement egg_move(LevelElement element)
                element.state = EGG_STATE_FALL;
                //check above; if it is possible to move down, then do so
                if (level_check_move_h(element.x, element.y +8 +STEP_LENGTH, adjust) == 0)
-               { 
-                 if ((element.y + 8 + STEP_LENGTH) < 56)
+               {            
+                 if ((element.y + 8 + STEP_LENGTH) < 60)
                  {
                    element.y += STEP_LENGTH;
                  } else {
@@ -260,14 +260,20 @@ LevelElement ailen_walker_move(LevelElement element)
         { 
           case STATE_MOVE_LEFT:
             if (element.x > STEP_LENGTH) {
+
+             //check underneath to see if there is a platform
              if (level_check_move_v(element.x - STEP_LENGTH, element.y+4, adjust)== 1 ) {
                     element.x -= STEP_LENGTH;
                     element.state = STATE_MOVE_LEFT;
              } else {
                element.state = STATE_MOVE_RIGHT;
              }
+             if (level_check_move(element.x, element.y+8) == 4) {
+                element.y -= STEP_LENGTH;
+             }
+             
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_RIGHT; 
             }
             break;
 
@@ -280,8 +286,12 @@ LevelElement ailen_walker_move(LevelElement element)
              } else {
                 element.state = STATE_MOVE_LEFT;
              }
+
+             if (level_check_move(element.x+8, element.y+8) == 5) {
+                element.y -= STEP_LENGTH;
+             }
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_LEFT; 
             }
             break;
         }
@@ -294,7 +304,7 @@ LevelElement ailen_walker_move(LevelElement element)
   return element;
 }
 
-//Alien walker behavior
+//walker behavior
 LevelElement walker_move(LevelElement element)
 {
   char adjust;
@@ -318,8 +328,11 @@ LevelElement walker_move(LevelElement element)
              } else {
                element.state = STATE_MOVE_RIGHT;
              }
+             if (level_check_move(element.x, element.y+8) == 4) {
+                element.y -= STEP_LENGTH;
+             }             
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_RIGHT;
             }
             break;
 
@@ -332,8 +345,11 @@ LevelElement walker_move(LevelElement element)
              } else {
                 element.state = STATE_MOVE_LEFT;
              }
+             if (level_check_move(element.x+8, element.y+8) == 5) {
+                element.y -= STEP_LENGTH;
+             }             
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_LEFT; 
             }
             break;
         }

@@ -16,8 +16,8 @@ const unsigned char PROGMEM level_data[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,2,3,5,1,0,0,0,0,0,0,0,0,0,0,0,
-0,2,4,3,1,0,0,0,2,3,3,3,1,0,0,0,
-0,2,3,3,1,0,0,0,2,3,4,3,1,0,0,0,
+0,2,4,3,1,0,0,0,2,3,4,3,1,0,0,0,
+3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
 };
 
 unsigned char level_get_block(char level_x, char level_y)
@@ -42,7 +42,7 @@ char level_check_move(char x, char y)
 {
    char level_x = x / 8;
    char level_y = y / 8;
-   if ((level_x > 11) || (level_y > 8)) return 0;
+   if ((level_x > 15) || (level_y > 7)) return 0;
    return level_get_block(level_x, level_y);
 }
 
