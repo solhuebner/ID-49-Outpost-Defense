@@ -24,6 +24,10 @@
 
 #define TYPE_FLAG         20   //8x8 element
 
+#define TEST_NO_COLLISION  0
+#define TEST_ELEMENT_LEFT  1
+#define TEST_ELEMENT_RIGHT 2
+#define TEST_COLLISION     3
 
 #define STEP_LENGTH  2
 #define COUNTER_START    25
@@ -61,6 +65,37 @@ void level_element_add(char type, char x, char y, char state, char speed, char l
       levelElements[element_count].speed_counter = 0;
       levelElements[element_count].life = life;
       element_count++;  
+}
+
+//sort all of the used elements by x,y axis (help with collision detection)
+void level_elements_sort_xy () {
+  //
+  for (char i=0; i < (element_count-1); i++) {
+    for (char o=0; o < (element_count-(i+1)); o++) {
+
+      //convert x,y to a single number for comparison
+      //so a single pass sort can be used (save processing time)
+      short curr_xy = (levelElements[o].y * 128) + levelElements[o].x;
+      short next_xy = (levelElements[o+1].y * 128) + levelElements[o+1].x;
+      
+      if (curr_xy > next_xy) {
+        LevelElement e = levelElements[o];
+        
+        levelElements[o] = levelElements[o+1];
+        levelElements[o+1] = e;
+      }
+    }
+  }
+}
+
+//test for collision in level elements
+char level_test_element (LevelElement element, char testX, char testY)
+{
+   if ((element.y + 8) < testY) return TEST_NO_COLLISION;  //no collision
+   if (element.y > (testY + 8)) return TEST_NO_COLLISION;  //no collision
+   if ((element.x + 8) < testX) return TEST_ELEMENT_RIGHT;  //on same y, element x
+   if (element.x > (testX + 8)) return TEST_ELEMENT_LEFT;  //on same y, element x 
+   return TEST_COLLISION;
 }
 
 //Egg behavior
@@ -366,14 +401,47 @@ LevelElement walker_move(LevelElement element)
   return element;
 }
 
+LevelElement element_hit(LevelElement element)
+{
+  element.state = STATE_HIDDEN;
+  return element;
+}
+
 void level_element_handle()
 {
-  
+  level_elements_sort_xy();
+
   for (char i=0; i < element_count; i++)
   {
     //if the element is hidden, skip past it
     if (levelElements[i].state > STATE_HIDDEN)
     {   
+      //if the element was not the first element in the list,
+      //compare the current element to the previous element
+      //to see if there was a collision or if it is to the left/right
+      //of the previous element
+      if (i > 0) {
+        switch (level_test_element(levelElements[i-1], levelElements[i].x, levelElements[i].y)) {
+          case TEST_NO_COLLISION:
+             break;
+
+          //default:
+          //  levelElements[i-1] = element_hit(levelElements[i-1]);
+          //  break;
+            
+          case TEST_ELEMENT_LEFT:
+             break;
+
+          case TEST_ELEMENT_RIGHT:
+             break;
+
+          case TEST_COLLISION:
+             levelElements[i-1] = element_hit(levelElements[i-1]);
+             break;
+        }
+
+      }
+      
        switch(levelElements[i].type) {
          case TYPE_EGG:
             levelElements[i] = egg_move(levelElements[i]);
