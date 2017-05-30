@@ -3,12 +3,14 @@
 
 #include "globals.h"
 
-#define STATE_HIDDEN      0
-#define STATE_VISIBLE     1
-#define STATE_MOVE_LEFT   2
-#define STATE_MOVE_RIGHT  4
-#define STATE_CLIMB_LEFT  5
-#define STATE_CLIMB_RIGHT 6
+#define STATE_HIDDEN       0
+#define STATE_VISIBLE      1
+#define STATE_MOVE_LEFT    2
+#define STATE_MOVE_RIGHT   4
+#define STATE_CLIMB_LEFT   5
+#define STATE_CLIMB_RIGHT  6
+#define STATE_ATTACK_LEFT  7
+#define STATE_ATTACK_RIGHT 8
 
 #define EGG_STATE_FALL    7
 #define EGG_STATE_STOP    8
@@ -93,8 +95,8 @@ char level_test_element (LevelElement element, char testX, char testY)
 {
    if ((element.y + 8) < testY) return TEST_NO_COLLISION;  //no collision
    if (element.y > (testY + 8)) return TEST_NO_COLLISION;  //no collision
-   if ((element.x + 8) < testX) return TEST_ELEMENT_RIGHT;  //on same y, element x
-   if (element.x > (testX + 8)) return TEST_ELEMENT_LEFT;  //on same y, element x 
+   if ((element.x + 8) < testX) return TEST_ELEMENT_LEFT;  //on same y, element x
+   if (element.x > (testX + 8)) return TEST_ELEMENT_RIGHT;  //on same y, element x 
    return TEST_COLLISION;
 }
 
@@ -276,6 +278,11 @@ LevelElement trooper_move(LevelElement element)
   return element;
 }
 
+LevelElement trooper_hit(LevelElement element, LevelElement hittingElement)
+{
+  element.state = STATE_HIDDEN;
+  return element;
+}
 
 //Alien walker behavior
 LevelElement ailen_walker_move(LevelElement element)
@@ -292,7 +299,7 @@ LevelElement ailen_walker_move(LevelElement element)
         if (element.step > 2) element.step = 0;
        
         switch (element.state)
-        { 
+        {         
           case STATE_MOVE_LEFT:
             if (element.x > STEP_LENGTH) {
 
@@ -332,9 +339,38 @@ LevelElement ailen_walker_move(LevelElement element)
         }
          
     }
-    sprites.drawSelfMasked(element.x, element.y, ailen_walker_img, element.step);
+
+    switch (element.state) {
+      case STATE_ATTACK_LEFT:
+      sprites.drawSelfMasked(element.x, element.y, ailen_walker_img, element.step + 3);
+      break;
+
+      case STATE_ATTACK_RIGHT:
+      sprites.drawSelfMasked(element.x, element.y, ailen_walker_img, element.step + 6);
+      break;
+
+      default:
+      sprites.drawSelfMasked(element.x, element.y, ailen_walker_img, element.step);
+      break;
+    }
+
     element.speed_counter++;
     
+  }
+  return element;
+}
+
+LevelElement ailen_walker_hit(LevelElement element, LevelElement hittingElement)
+{
+  if (hittingElement.state == STATE_HIDDEN) return element;
+  if ((hittingElement.type == TYPE_AILEN) || (hittingElement.type == TYPE_AILEN_WALKER) || (hittingElement.type == TYPE_EGG)) return element;
+
+  //check enemy action.  If they are attacking, register hit
+  
+  if (element.x > hittingElement.x) {
+    element.state = STATE_ATTACK_LEFT;
+  } else {
+    element.state = STATE_ATTACK_RIGHT;
   }
   return element;
 }
@@ -390,13 +426,42 @@ LevelElement walker_move(LevelElement element)
         }
          
     }
-    if (element.state==STATE_MOVE_LEFT) {
+    
+    switch (element.state) {
+      case STATE_MOVE_LEFT:
       sprites.drawSelfMasked(element.x, element.y, walker_img, element.step+4);
-    } else {
+      break;
+
+      case STATE_MOVE_RIGHT:
       sprites.drawSelfMasked(element.x, element.y, walker_img, element.step);
+      break;
+
+      case STATE_ATTACK_LEFT:
+      sprites.drawSelfMasked(element.x, element.y, walker_img, element.step+12);
+      break;
+
+      case STATE_ATTACK_RIGHT:
+      sprites.drawSelfMasked(element.x, element.y, walker_img, element.step+8);
+      break;    
     }
+
     element.speed_counter++;
     
+  }
+  return element;
+}
+
+LevelElement walker_hit(LevelElement element, LevelElement hittingElement)
+{
+  if (hittingElement.state == STATE_HIDDEN) return element;
+  if ((hittingElement.type == TYPE_TROOPER) || (hittingElement.type == TYPE_WALKER) || (hittingElement.type == TYPE_EGG)) return element;
+
+  //check enemy action.  If they are attacking, register hit
+  
+  if (element.x > hittingElement.x) {
+    element.state = STATE_ATTACK_LEFT;
+  } else {
+    element.state = STATE_ATTACK_RIGHT;
   }
   return element;
 }
@@ -404,6 +469,18 @@ LevelElement walker_move(LevelElement element)
 LevelElement element_hit(LevelElement element)
 {
   element.state = STATE_HIDDEN;
+  return element;
+}
+
+LevelElement element_left(LevelElement element)
+{
+  element.state = STATE_MOVE_LEFT;
+  return element;
+}
+
+LevelElement element_right(LevelElement element)
+{
+  element.state = STATE_MOVE_RIGHT;
   return element;
 }
 
@@ -424,19 +501,34 @@ void level_element_handle()
         switch (level_test_element(levelElements[i-1], levelElements[i].x, levelElements[i].y)) {
           case TEST_NO_COLLISION:
              break;
-
-          //default:
-          //  levelElements[i-1] = element_hit(levelElements[i-1]);
-          //  break;
             
           case TEST_ELEMENT_LEFT:
+             //levelElements[i-1] = element_left(levelElements[i-1]);
              break;
 
           case TEST_ELEMENT_RIGHT:
+             //levelElements[i-1] = element_right(levelElements[i-1]);
              break;
 
           case TEST_COLLISION:
-             levelElements[i-1] = element_hit(levelElements[i-1]);
+             switch(levelElements[i-1].type) {
+                case TYPE_TROOPER:
+                  //levelElements[i-1] = trooper_hit(levelElements[i]);
+                  break;
+
+                case TYPE_AILEN:
+                  //levelElements[i-1] = ailen_hit(levelElements[i]);
+                  break;
+
+                case TYPE_AILEN_WALKER:
+                  levelElements[i-1] = ailen_walker_hit(levelElements[i-1], levelElements[i]);
+                  break;
+
+                case TYPE_WALKER:
+                  levelElements[i-1] = walker_hit(levelElements[i-1], levelElements[i]);
+                  break;
+              
+             }
              break;
         }
 
