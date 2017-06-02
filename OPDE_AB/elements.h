@@ -11,6 +11,7 @@
 #define STATE_CLIMB_RIGHT  6
 #define STATE_ATTACK_LEFT  7
 #define STATE_ATTACK_RIGHT 8
+#define STATE_EXPLODING    9
 
 #define EGG_STATE_FALL    7
 #define EGG_STATE_STOP    8
@@ -296,7 +297,24 @@ LevelElement ailen_walker_move(LevelElement element)
     {
         element.speed_counter = 0;
         element.step++;
-        if (element.step > 2) element.step = 0;
+        if (element.step > 2) {
+          element.step = 0;
+
+          switch (element.state) {
+            case STATE_EXPLODING:
+              //if the element was exploding, it is now hidden
+              element.state = STATE_HIDDEN;
+              break;
+
+            case STATE_ATTACK_LEFT:
+              element.state = STATE_MOVE_LEFT;
+              break;
+
+            case STATE_ATTACK_RIGHT:
+              element.state = STATE_MOVE_RIGHT;
+              break;
+          }
+        }
        
         switch (element.state)
         {         
@@ -341,6 +359,10 @@ LevelElement ailen_walker_move(LevelElement element)
     }
 
     switch (element.state) {
+      case STATE_EXPLODING:
+      sprites.drawSelfMasked(element.x, element.y, explosion_img, element.step);
+      break;
+      
       case STATE_ATTACK_LEFT:
       sprites.drawSelfMasked(element.x, element.y, ailen_walker_img, element.step + 3);
       break;
@@ -362,16 +384,21 @@ LevelElement ailen_walker_move(LevelElement element)
 
 LevelElement ailen_walker_hit(LevelElement element, LevelElement hittingElement)
 {
-  if (hittingElement.state == STATE_HIDDEN) return element;
+  if ((element.state == STATE_EXPLODING)||(element.state == STATE_HIDDEN)) return element;
+  if ((hittingElement.state == STATE_HIDDEN)||(hittingElement.state == STATE_EXPLODING)) return element;
   if ((hittingElement.type == TYPE_AILEN) || (hittingElement.type == TYPE_AILEN_WALKER) || (hittingElement.type == TYPE_EGG)) return element;
 
   //check enemy action.  If they are attacking, register hit
-  
-  if (element.x > hittingElement.x) {
-    element.state = STATE_ATTACK_LEFT;
+  if ((hittingElement.state == STATE_ATTACK_LEFT) || (hittingElement.state == STATE_ATTACK_RIGHT)) {
+    element.state = STATE_EXPLODING;
   } else {
-    element.state = STATE_ATTACK_RIGHT;
-  }
+  
+    if (element.x > hittingElement.x) {
+      element.state = STATE_ATTACK_LEFT;
+    } else {
+      element.state = STATE_ATTACK_RIGHT;
+    }
+  } 
   return element;
 }
 
@@ -387,7 +414,24 @@ LevelElement walker_move(LevelElement element)
     {
         element.speed_counter = 0;
         element.step++;
-        if (element.step > 3) element.step = 0;
+        if (element.step > 3) {
+          element.step = 0;
+
+          switch (element.state) {
+            case STATE_EXPLODING:
+              //if the element was exploding, it is now hidden
+              element.state = STATE_HIDDEN;
+              break;
+
+            case STATE_ATTACK_LEFT:
+              element.state = STATE_MOVE_LEFT;
+              break;
+
+            case STATE_ATTACK_RIGHT:
+              element.state = STATE_MOVE_RIGHT;
+              break;
+          }
+        }
        
         switch (element.state)
         { 
@@ -428,6 +472,10 @@ LevelElement walker_move(LevelElement element)
     }
     
     switch (element.state) {
+      case STATE_EXPLODING:
+      sprites.drawSelfMasked(element.x, element.y, explosion_img, element.step);
+      break;
+      
       case STATE_MOVE_LEFT:
       sprites.drawSelfMasked(element.x, element.y, walker_img, element.step+4);
       break;
@@ -453,15 +501,21 @@ LevelElement walker_move(LevelElement element)
 
 LevelElement walker_hit(LevelElement element, LevelElement hittingElement)
 {
-  if (hittingElement.state == STATE_HIDDEN) return element;
+  if ((element.state == STATE_EXPLODING)||(element.state == STATE_HIDDEN)) return element;
+  if ((hittingElement.state == STATE_HIDDEN)||(hittingElement.state == STATE_EXPLODING)) return element;
   if ((hittingElement.type == TYPE_TROOPER) || (hittingElement.type == TYPE_WALKER) || (hittingElement.type == TYPE_EGG)) return element;
 
   //check enemy action.  If they are attacking, register hit
-  
-  if (element.x > hittingElement.x) {
-    element.state = STATE_ATTACK_LEFT;
+  if ((hittingElement.state == STATE_ATTACK_LEFT) || (hittingElement.state == STATE_ATTACK_RIGHT)) {
+    element.state = STATE_EXPLODING;
   } else {
-    element.state = STATE_ATTACK_RIGHT;
+
+    //Otherwise start attacking enemy
+    if (element.x > hittingElement.x) {
+      element.state = STATE_ATTACK_LEFT;
+    } else {
+      element.state = STATE_ATTACK_RIGHT;
+    }
   }
   return element;
 }
@@ -474,13 +528,13 @@ LevelElement element_hit(LevelElement element)
 
 LevelElement element_left(LevelElement element)
 {
-  element.state = STATE_MOVE_LEFT;
+  if ((element.state == STATE_MOVE_LEFT) || (element.state == STATE_MOVE_RIGHT)) element.state = STATE_MOVE_LEFT;
   return element;
 }
 
 LevelElement element_right(LevelElement element)
 {
-  element.state = STATE_MOVE_RIGHT;
+  if ((element.state == STATE_MOVE_LEFT) ||(element.state == STATE_MOVE_RIGHT)) element.state = STATE_MOVE_RIGHT;
   return element;
 }
 
@@ -521,7 +575,7 @@ void level_element_handle()
                   break;
 
                 case TYPE_AILEN_WALKER:
-                  levelElements[i-1] = ailen_walker_hit(levelElements[i-1], levelElements[i]);
+                  levelElements[i-1] =  ailen_walker_hit(levelElements[i-1], levelElements[i]);
                   break;
 
                 case TYPE_WALKER:
