@@ -382,26 +382,6 @@ LevelElement ailen_walker_move(LevelElement element)
   return element;
 }
 
-LevelElement ailen_walker_hit(LevelElement element, LevelElement hittingElement)
-{
-  if ((element.state == STATE_EXPLODING)||(element.state == STATE_HIDDEN)) return element;
-  if ((hittingElement.state == STATE_HIDDEN)||(hittingElement.state == STATE_EXPLODING)) return element;
-  if ((hittingElement.type == TYPE_AILEN) || (hittingElement.type == TYPE_AILEN_WALKER) || (hittingElement.type == TYPE_EGG)) return element;
-
-  //check enemy action.  If they are attacking, register hit
-  if ((hittingElement.state == STATE_ATTACK_LEFT) || (hittingElement.state == STATE_ATTACK_RIGHT)) {
-    element.state = STATE_EXPLODING;
-  } else {
-  
-    if (element.x > hittingElement.x) {
-      element.state = STATE_ATTACK_LEFT;
-    } else {
-      element.state = STATE_ATTACK_RIGHT;
-    }
-  } 
-  return element;
-}
-
 //walker behavior
 LevelElement walker_move(LevelElement element)
 {
@@ -499,11 +479,31 @@ LevelElement walker_move(LevelElement element)
   return element;
 }
 
-LevelElement walker_hit(LevelElement element, LevelElement hittingElement)
+
+bool element_ignore(LevelElement element, LevelElement hittingElement)
 {
-  if ((element.state == STATE_EXPLODING)||(element.state == STATE_HIDDEN)) return element;
-  if ((hittingElement.state == STATE_HIDDEN)||(hittingElement.state == STATE_EXPLODING)) return element;
-  if ((hittingElement.type == TYPE_TROOPER) || (hittingElement.type == TYPE_WALKER) || (hittingElement.type == TYPE_EGG)) return element;
+  if ((element.state == STATE_EXPLODING)||(element.state == STATE_HIDDEN)) return true;
+  if ((hittingElement.state == STATE_HIDDEN)||(hittingElement.state == STATE_EXPLODING)) return true;
+
+  //Ignore "friendly" (or neutral) units
+  switch (element.type) {
+    case TYPE_TROOPER:
+    case TYPE_WALKER:
+      if ((hittingElement.type == TYPE_TROOPER) || (hittingElement.type == TYPE_WALKER)|| (hittingElement.type == TYPE_EGG)) return true;
+      break;
+
+    case TYPE_AILEN:
+    case TYPE_AILEN_WALKER:
+      if ((hittingElement.type == TYPE_AILEN) || (hittingElement.type == TYPE_AILEN_WALKER) || (hittingElement.type == TYPE_EGG)) return true;
+      break; 
+  }
+  return false;
+}
+
+LevelElement element_hit(LevelElement element, LevelElement hittingElement)
+{
+  //see if we need to ignore the element
+  if (element_ignore(element, hittingElement)) return element;
 
   //check enemy action.  If they are attacking, register hit
   if ((hittingElement.state == STATE_ATTACK_LEFT) || (hittingElement.state == STATE_ATTACK_RIGHT)) {
@@ -520,21 +520,15 @@ LevelElement walker_hit(LevelElement element, LevelElement hittingElement)
   return element;
 }
 
-LevelElement element_hit(LevelElement element)
+LevelElement element_spotted(LevelElement element, LevelElement hittingElement, char newState)
 {
-  element.state = STATE_HIDDEN;
-  return element;
-}
-
-LevelElement element_left(LevelElement element)
-{
-  if ((element.state == STATE_MOVE_LEFT) || (element.state == STATE_MOVE_RIGHT)) element.state = STATE_MOVE_LEFT;
-  return element;
-}
-
-LevelElement element_right(LevelElement element)
-{
-  if ((element.state == STATE_MOVE_LEFT) ||(element.state == STATE_MOVE_RIGHT)) element.state = STATE_MOVE_RIGHT;
+  //see if we need to ignore the element
+  if (element_ignore(element, hittingElement)) return element;
+  
+  //if the elements are not on the same element, ignore
+  if (element.y != hittingElement.y) return element;
+  
+  element.state = newState;
   return element;
 }
 
@@ -555,34 +549,17 @@ void level_element_handle()
         switch (level_test_element(levelElements[i-1], levelElements[i].x, levelElements[i].y)) {
           case TEST_NO_COLLISION:
              break;
-            
-          case TEST_ELEMENT_LEFT:
-             //levelElements[i-1] = element_left(levelElements[i-1]);
-             break;
 
+          case TEST_ELEMENT_LEFT:
+             levelElements[i-1] = element_spotted(levelElements[i-1], levelElements[i], STATE_MOVE_LEFT);
+             break;
+            
           case TEST_ELEMENT_RIGHT:
-             //levelElements[i-1] = element_right(levelElements[i-1]);
+             levelElements[i-1] = element_spotted(levelElements[i-1], levelElements[i], STATE_MOVE_RIGHT);
              break;
 
           case TEST_COLLISION:
-             switch(levelElements[i-1].type) {
-                case TYPE_TROOPER:
-                  //levelElements[i-1] = trooper_hit(levelElements[i]);
-                  break;
-
-                case TYPE_AILEN:
-                  //levelElements[i-1] = ailen_hit(levelElements[i]);
-                  break;
-
-                case TYPE_AILEN_WALKER:
-                  levelElements[i-1] =  ailen_walker_hit(levelElements[i-1], levelElements[i]);
-                  break;
-
-                case TYPE_WALKER:
-                  levelElements[i-1] = walker_hit(levelElements[i-1], levelElements[i]);
-                  break;
-              
-             }
+             levelElements[i-1] = element_hit(levelElements[i-1], levelElements[i]);
              break;
         }
 
