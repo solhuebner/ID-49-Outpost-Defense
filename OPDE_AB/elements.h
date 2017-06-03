@@ -154,7 +154,7 @@ LevelElement egg_move(LevelElement element)
                if (element.step > 2)
          { 
             element.state = STATE_HIDDEN;
-            //level_element_add(TYPE_AILEN, element.x, element.y+4, STATE_MOVE_LEFT, 4,1);
+            level_element_add(TYPE_AILEN, element.x, element.y+4, STATE_MOVE_LEFT, 4,1);
             level_element_add(TYPE_AILEN_WALKER, element.x, element.y, STATE_MOVE_LEFT,6,1);
          }
          break;         
@@ -183,7 +183,25 @@ LevelElement ailen_move(LevelElement element)
     {
         element.speed_counter = 0;
         element.step++;
-        if (element.step > 1) element.step = 0;
+        if (element.step > 1) {
+          element.step = 0;
+          
+          switch (element.state) {
+            case STATE_EXPLODING:
+              //if the element was exploding, it is now hidden
+              element.state = STATE_HIDDEN;
+              break;
+
+            case STATE_ATTACK_LEFT:
+              element.state = STATE_MOVE_LEFT;
+              break;
+
+            case STATE_ATTACK_RIGHT:
+              element.state = STATE_MOVE_RIGHT;
+              break;
+          }
+          
+        }
        
         switch (element.state)
         { 
@@ -195,11 +213,13 @@ LevelElement ailen_move(LevelElement element)
              } else {
                element.state = STATE_MOVE_RIGHT;
              }
+             if (level_check_move(element.x, element.y+4) == 4) {
+                element.y -= STEP_LENGTH;
+             }             
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_RIGHT;
             }
             break;
-
 
           case STATE_MOVE_RIGHT:
             if (element.x < (128- STEP_LENGTH)) {
@@ -209,14 +229,34 @@ LevelElement ailen_move(LevelElement element)
              } else {
                 element.state = STATE_MOVE_LEFT;
              }
+             if (level_check_move(element.x+4, element.y+4) == 5) {
+                element.y -= STEP_LENGTH;
+             }             
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_LEFT; 
             }
             break;
         }
          
     }
-    sprites.drawSelfMasked(element.x, element.y, ailen_img, element.step);
+
+    switch (element.state) {
+      case STATE_EXPLODING:
+      sprites.drawSelfMasked(element.x, element.y, explosion_img, element.step);
+      break;
+      
+      case STATE_ATTACK_LEFT:
+      sprites.drawSelfMasked(element.x, element.y, ailen_img, element.step + 2);
+      break;
+
+      case STATE_ATTACK_RIGHT:
+      sprites.drawSelfMasked(element.x, element.y, ailen_img, element.step + 4);
+      break;
+
+      default:
+      sprites.drawSelfMasked(element.x, element.y, ailen_img, element.step);
+      break;
+    }
     element.speed_counter++;
     
   }
@@ -235,7 +275,24 @@ LevelElement trooper_move(LevelElement element)
     {
         element.speed_counter = 0;
         element.step++;
-        if (element.step > 1) element.step = 0;
+        if (element.step > 1) {
+          element.step = 0;
+
+          switch (element.state) {
+            case STATE_EXPLODING:
+              //if the element was exploding, it is now hidden
+              element.state = STATE_HIDDEN;
+              break;
+
+            case STATE_ATTACK_LEFT:
+              element.state = STATE_MOVE_LEFT;
+              break;
+
+            case STATE_ATTACK_RIGHT:
+              element.state = STATE_MOVE_RIGHT;
+              break;
+          }
+        }
        
         switch (element.state)
         { 
@@ -247,8 +304,11 @@ LevelElement trooper_move(LevelElement element)
              } else {
                element.state = STATE_MOVE_RIGHT;
              }
+             if (level_check_move(element.x, element.y+4) == 4) {
+                element.y -= STEP_LENGTH;
+             }             
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_RIGHT;
             }
             break;
 
@@ -261,27 +321,43 @@ LevelElement trooper_move(LevelElement element)
              } else {
                 element.state = STATE_MOVE_LEFT;
              }
+             if (level_check_move(element.x+4, element.y+4) == 5) {
+                element.y -= STEP_LENGTH;
+             }             
             } else {
-              element.state = STATE_HIDDEN; 
+              element.state = STATE_MOVE_LEFT; 
             }
             break;
         }
          
     }
-        if (element.state==STATE_MOVE_LEFT) {
+
+
+    switch (element.state) {
+      case STATE_EXPLODING:
+      sprites.drawSelfMasked(element.x, element.y, explosion_img, element.step);
+      break;
+      
+      case STATE_MOVE_LEFT:
       sprites.drawSelfMasked(element.x, element.y, trooper_img, element.step+2);
-    } else {
+      break;
+
+      case STATE_MOVE_RIGHT:
       sprites.drawSelfMasked(element.x, element.y, trooper_img, element.step);
+      break;
+
+      case STATE_ATTACK_LEFT:
+      sprites.drawSelfMasked(element.x, element.y, trooper_img, element.step+4);
+      break;
+
+      case STATE_ATTACK_RIGHT:
+      sprites.drawSelfMasked(element.x, element.y, trooper_img, element.step+6);
+      break;    
     }
+
     element.speed_counter++;
     
   }
-  return element;
-}
-
-LevelElement trooper_hit(LevelElement element, LevelElement hittingElement)
-{
-  element.state = STATE_HIDDEN;
   return element;
 }
 
