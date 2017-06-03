@@ -21,19 +21,11 @@
 #define STATE_GAME_PAUSE             8
 #define STATE_GAME_OVER              9
 
-#define GAME_TOP                     0
-#define GAME_BOTTOM                  48
-#define GAME_LEFT                    0
-#define GAME_RIGHT                   112
-
-#define FACING_SOUTH                 0
-#define FACING_WEST                  1
-#define FACING_NORTH                 2
-#define FACING_EAST                  3
-
 #define FIRST_LEVEL                  0
 
 
+#define POINTER_MOVE                 0
+#define POINTER_TARGET               2
 Arduboy2Base arduboy;
 Sprites sprites;
 ATMsynth ATM;
@@ -41,6 +33,10 @@ ATMsynth ATM;
 byte gameState = STATE_MENU_INTRO;   // start the game with the TEAM a.r.g. logo
 byte menuSelection = STATE_MENU_PLAY; // PLAY menu item is pre-selected
 byte globalCounter = 0;
-byte level = FIRST_LEVEL;
+byte pointer_x   = 64;
+byte pointer_y   = 32;
+byte pointer_step = 0;
+byte pointer_ctr  = 0;
+byte pointer_state = POINTER_MOVE;
 
 #endif
